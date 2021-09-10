@@ -58,5 +58,13 @@ namespace mp3_fly_playlist
                 Playlist.Singleton.Save(sfdSavePlaylist.FileName);
             }
         }
+
+        private void openToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            if (ofdChoosePlaylist.ShowDialog() == DialogResult.OK)
+            {
+                Playlist.Singleton.Load(ofdChoosePlaylist.FileName);
+            }
+        }
     }
 }

@@ -50,6 +50,44 @@ namespace mp3_fly_playlist
             }
         }
 
+        public void Deserialize(BinaryReader sr)
+        {
+            if (sr.ReadChar() != 0x01)
+                return;
+            if(new string(sr.ReadChars(24)) != "MMIMP3_LIST_VER.01.01.00")
+                return;
+            if (sr.ReadUInt32()!= 0xFF)
+                return;
+            var count = sr.ReadUInt32();
+            if(count!= sr.ReadUInt32())
+                return;
+            Items.Clear();
+            for (var i = 0; i < count; ++i)
+            {
+                var item = new Mp3Item();
+                item.Deserialize(sr);
+                Items.Add(item);
+            }
+            if(sr.ReadUInt32()!=0x00)
+                return;
+            for (var i = 0; i < Items.Count; ++i)
+            {
+                if(sr.ReadUInt32()!=i)
+                    return;
+            }
+            if (new string(sr.ReadChars(24)) != "MMIMP3_LIST_VER.01.01.00")
+                return;
+            var size = sr.BaseStream.Position + 12;
+            if (sr.ReadUInt32() != size)
+                return;
+            if (sr.ReadUInt32() != Items.Count)
+                return;
+            if (sr.ReadUInt32() != Items.Count)
+                return;
+            if (sr.PeekChar() != -1)
+                return;
+        }
+
         public void Serialize(BinaryWriter sw)
         {
             sw.Write((char)0x01);
@@ -90,6 +128,15 @@ namespace mp3_fly_playlist
             {
                 Serialize(writer);
                 File.WriteAllBytes(path, memoryStream.ToArray());
+            }
+        }
+
+        public void Load(string path)
+        { 
+            using (var memoryStream = new MemoryStream(File.ReadAllBytes(path)))
+            using (var reader = new BinaryReader(memoryStream, Encoding.ASCII))
+            { 
+                Deserialize(reader);
             }
         }
 
@@ -137,6 +184,35 @@ namespace mp3_fly_playlist
             Array.Resize<byte>(ref name, 510);
             sw.Write(name);
         }
+
+        public void Deserialize(BinaryReader sr)
+        {
+            if(sr.ReadUInt32()!= 0x00)
+                return;
+            sr.ReadUInt32();
+            Size = sr.ReadUInt32();
+            var length = sr.ReadUInt16();
+            if (length > 510)
+                return;
+            byte[] name = new byte[length];
+            name = sr.ReadBytes(name.Length*2);
+            SDPath = Encoding.Unicode.GetString(name);
+            sr.ReadBytes(510 - name.Length);
+            var path = SDPath;
+            HDDPath = "D" + path.Substring(1);
+            Name = Path.GetFileName(path);
+            if(path.Substring(0,1) != "E")
+                return;
+            path = HDDPath;
+            var fi = new FileInfo(path);
+            if(Size != fi.Length)
+                return;
+        }
+
+        public Mp3Item()
+        {
+        }
+
     }
 }
 
