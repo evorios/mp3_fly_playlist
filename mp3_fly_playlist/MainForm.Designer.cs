@@ -67,6 +67,7 @@
             this.openToolStripMenuItem1.Name = "openToolStripMenuItem1";
             this.openToolStripMenuItem1.Size = new System.Drawing.Size(48, 20);
             this.openToolStripMenuItem1.Text = "Open";
+            this.openToolStripMenuItem1.Click += openToolStripMenuItem1_Click;
             // 
             // saveToolStripMenuItem
             // 
